@@ -11,13 +11,12 @@ import simplejson, urllib
 
 def main():
   #print 'TODAY\n-----'
-  #getMovieResults(movie='pixels', location='94043')
+  getMovieResults(movie='pixels', location='94043')
   #print 'TOMORROW\n--------'
-  #getMovieResults(movie='pixels', location='94043', date='1')
-  print 'pixels movie results for today\n---------------------'
-  getMovieResults(movie='pixels', location='94043', date='0')
-  print 'all movie results for today\n---------------------'
-  getMovieResults(movie='', location='94043', date='0')
+  getMovieResults(movie='pixels', location='94043', date='1')
+  getMovieResults(movie='antman', location='94002', date='0')
+  #print('all movie results for today\n---------------------')
+  #getMovieResults(movie='', location='94043', date='0')
   
   
 def getMovieResults(movie='pixels', location='94043', date='0'):
@@ -30,12 +29,9 @@ def getMovieResults(movie='pixels', location='94043', date='0'):
     if v == '':
       del payload[k]
   
-  print 'Payload is : ', payload
-  r = requests.get(rootUrl, params=payload)
-  htmlSource = r
-
-  #r.text
-
+  htmlSource = requests.get(rootUrl, params=payload)
+  print('[' + htmlSource.url + ']')
+  
   movieNamePattern = "<h2 itemprop=\"name\">.*?<a href=.*?>(.*?)</a>.*?</h2>"
   movieList = re.split(movieNamePattern, htmlSource.text)
 
@@ -61,20 +57,22 @@ def getMovieResults(movie='pixels', location='94043', date='0'):
       driveTime = driveTimeResult['rows'][0]['elements'][0]['duration']['text']
       
       showtimesData = results[3*j+3]
-      showtimesPattern = "fandango.*?date.*?(\d\d\d\d-\d\d-\d\d).*?(\d\d:\d\d)"
-      showtimesPattern = "(\d\d:\d\d).*?>.*?</a>"
+      #print(showtimesData)
+      showtimesPattern = "<a href=.*?http://www.fandango.com/.*?date.*?(\d\d\d\d-\d\d-\d\d).*?(\d\d:\d\d).*?>.*?</a>"
+      #showtimesPattern = "(\d\d:\d\d).*?>.*?</a>"
       movieShowtimes = re.findall(showtimesPattern, showtimesData)
       n = len(movieShowtimes)
-      dataBase.extend([(movieName, theatreName, theatreAddress, time, driveTime) for time in movieShowtimes])
+      dataBase.extend([(date, time, movieName, theatreName, driveTime, theatreAddress) for (date, time) in movieShowtimes])
 
   #print dataBase
   ### sort dataBase by showtime
-  dataBase.sort(key=lambda x: x[3])
-  displayString = '{0:<6}  {1:<15}  {2:<30}  {3:<10}  {4:<50}'
+  dataBase.sort(key=lambda x: x[1])
+  displayString = '{0:<10}  {1:<6}  {2:<30}  {3:<30}  {4:<10}  {5:<50}'
   if len(dataBase) > 0:
-    print displayString.format('TIME', 'MOVIE', 'THEATRE', 'DRIVE TIME', 'ADDRESS')
+    print displayString.format('DATE', 'TIME', 'MOVIE', 'THEATRE', 'DRIVE TIME', 'ADDRESS')
+    print displayString.format('----', '----', '-----', '-------', '----------', '-------')
     for idx, x in enumerate(dataBase):
-      if (idx < 10): print displayString.format(x[3], x[0], x[1], x[4], x[2])
+      if (idx < 10): print displayString.format(x[0], x[1], x[2], x[3], x[4], x[5])
 
 
 main()
