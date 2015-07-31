@@ -1,11 +1,10 @@
 
 ### argument 1 [$moviequery] : search query for google.com/movies
 ### argument 2 [$location]   : search near (default = 94043)
-### www.google.com/movies?q=$moviequery&near=$location
+### www.google.com/movies?q=$movieName&near=$location&date=0
 
 
-import requests
-import re
+import requests, re
 import itertools
 import simplejson, urllib
 
@@ -62,17 +61,17 @@ def getMovieResults(movie='pixels', location='94043', date='0'):
       #showtimesPattern = "(\d\d:\d\d).*?>.*?</a>"
       movieShowtimes = re.findall(showtimesPattern, showtimesData)
       n = len(movieShowtimes)
-      dataBase.extend([(date, time, movieName, theatreName, driveTime, theatreAddress) for (date, time) in movieShowtimes])
+      dataBase.extend([dict([('date', date), ('time', time), ('movieName', movieName), ('theatre', theatreName), ('driveTime', driveTime), ('theatreAddress', theatreAddress)]) for (date, time) in movieShowtimes])
 
   #print dataBase
   ### sort dataBase by showtime
-  dataBase.sort(key=lambda x: x[1])
+  dataBase.sort(key=lambda x: x['time'])
   displayString = '{0:<10}  {1:<6}  {2:<30}  {3:<30}  {4:<10}  {5:<50}'
   if len(dataBase) > 0:
     print displayString.format('DATE', 'TIME', 'MOVIE', 'THEATRE', 'DRIVE TIME', 'ADDRESS')
     print displayString.format('----', '----', '-----', '-------', '----------', '-------')
     for idx, x in enumerate(dataBase):
-      if (idx < 10): print displayString.format(x[0], x[1], x[2], x[3], x[4], x[5])
+      if (idx < 10): print displayString.format(x['date'], x['time'], x['movieName'], x['theatre'], x['driveTime'], x['theatreAddress'])
 
 
 main()
